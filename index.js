@@ -54,6 +54,10 @@ let currentBackupAttemptId = null; // 存储最新一次备份尝试的唯一ID
 let metadataHashOnDrawerOpen = null; // 抽屉打开时的元数据哈希值
 let tableDrawerElement = null; // 添加全局变量声明，用于保存抽屉元素引用
 
+// 在文件顶部添加一个新的标志变量
+let messageSentRecently = false;
+let messageSentResetTimer = null;
+
 // 优化的高效哈希函数 - 专为比较优化，非加密用途
 function fastHash(str) {
     if (!str) return "0";
@@ -245,7 +249,7 @@ function constructJsonlString(metadata, messages) {
 }
 
 // 扩展名和设置初始化
-const PLUGIN_NAME = 'chat-history-backupQ9';
+const PLUGIN_NAME = 'chat-history-backupQ8';
 const DEFAULT_SETTINGS = {
     maxEntityCount: 3,        // 最多保存几个不同角色/群组的备份 (新增)
     maxBackupsPerEntity: 3,   // 每个角色/群组最多保存几个备份 (新增)
@@ -1930,19 +1934,62 @@ jQuery(async () => {
     const setupBackupEvents = () => {
         console.log('[聊天自动备份] 设置备份事件监听 (优化版)');
         
+        // 监听消息发送事件来设置标志
+        if (event_types.MESSAGE_SENT) {
+            eventSource.on(event_types.MESSAGE_SENT, () => {
+                logDebug(`Event: MESSAGE_SENT`);
+                // 设置标志，表示刚刚发送了消息
+                messageSentRecently = true;
+                
+                // 清除任何现有的重置计时器
+                if (messageSentResetTimer) {
+                    clearTimeout(messageSentResetTimer);
+                }
+                
+                // 10秒后自动重置标志，以防 GENERATION_STARTED 未触发
+                messageSentResetTimer = setTimeout(() => {
+                    messageSentRecently = false;
+                    messageSentResetTimer = null;
+                    logDebug(`自动重置 messageSentRecently 标志`);
+                }, 10000);
+            });
+        }
+
         // 只有生成结束事件使用强制保存
         if (event_types.GENERATION_ENDED) {
             eventSource.on(event_types.GENERATION_ENDED, () => {
                 logDebug(`Event: GENERATION_ENDED`);
-                performBackupConditional(BACKUP_TYPE.STANDARD, true).catch(e => console.error("GENERATION_ENDED backup error", e));
+                // 重置消息发送标志
+                messageSentRecently = false;
+                if (messageSentResetTimer) {
+                    clearTimeout(messageSentResetTimer);
+                    messageSentResetTimer = null;
+                }
+                
+                performBackupConditional(BACKUP_TYPE.STANDARD, true).catch(e => 
+                    console.error("GENERATION_ENDED backup error", e));
             });
         }
 
-        // 用户发送消息事件，立即备份但不强制保存
+        // 修改用户发送消息后的生成启动事件
         if (event_types.GENERATION_STARTED) {
             eventSource.on(event_types.GENERATION_STARTED, () => {
-                logDebug(`Event: GENERATION_STARTED`);
-                performBackupConditional(BACKUP_TYPE.STANDARD, false).catch(e => console.error("GENERATION_STARTED backup error", e));
+                logDebug(`Event: GENERATION_STARTED (messageSentRecently: ${messageSentRecently})`);
+                
+                // 只有当最近发送过消息时才执行备份
+                if (messageSentRecently) {
+                    performBackupConditional(BACKUP_TYPE.STANDARD, false).catch(e => 
+                        console.error("GENERATION_STARTED backup error", e));
+                    
+                    // 处理完毕后重置标志
+                    messageSentRecently = false;
+                    if (messageSentResetTimer) {
+                        clearTimeout(messageSentResetTimer);
+                        messageSentResetTimer = null;
+                    }
+                } else {
+                    logDebug(`跳过 GENERATION_STARTED 事件的备份，因为不是由消息发送触发的`);
+                }
             });
         }
         
@@ -1988,6 +2035,26 @@ jQuery(async () => {
                 });
             }
         });
+        
+        // 添加删除消息事件监听 - 使用强制保存确保最新状态
+        if (event_types.MESSAGE_DELETED) {
+            eventSource.on(event_types.MESSAGE_DELETED, () => {
+                logDebug(`Event: MESSAGE_DELETED`);
+                // 使用强制保存以确保获取最新状态
+                performBackupConditional(BACKUP_TYPE.STANDARD, true).catch(e => 
+                    console.error("MESSAGE_DELETED backup error", e));
+            });
+        }
+        
+        // 添加批量删除消息事件监听
+        if (event_types.MESSAGES_DELETED) {
+            eventSource.on(event_types.MESSAGES_DELETED, () => {
+                logDebug(`Event: MESSAGES_DELETED`);
+                // 使用强制保存以确保获取最新状态
+                performBackupConditional(BACKUP_TYPE.STANDARD, true).catch(e => 
+                    console.error("MESSAGES_DELETED backup error", e));
+            });
+        }
         
         logDebug('优化后的备份事件监听器设置完成。');
     };
