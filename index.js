@@ -245,7 +245,7 @@ function constructJsonlString(metadata, messages) {
 }
 
 // 扩展名和设置初始化
-const PLUGIN_NAME = 'chat-history-backupQ8';
+const PLUGIN_NAME = 'chat-history-backupQ9';
 const DEFAULT_SETTINGS = {
     maxEntityCount: 3,        // 最多保存几个不同角色/群组的备份 (新增)
     maxBackupsPerEntity: 3,   // 每个角色/群组最多保存几个备份 (新增)
