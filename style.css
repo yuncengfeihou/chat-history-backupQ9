@@ -1,0 +1,196 @@
+/* 聊天自动备份插件样式 */
+
+/* ===== 控制区域 ===== */
+.chat_backup_controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
+    padding: 10px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+.chat_backup_control_item {
+    margin: 5px;
+}
+
+/* 确保控制区域内的所有按钮文本都不换行 */
+.chat_backup_controls button,
+.backup_actions .menu_button {
+    white-space: nowrap;
+}
+
+.chat_backup_description {
+    margin-bottom: 15px;
+    opacity: 0.8;
+    font-size: 0.95em;
+    line-height: 1.5;
+}
+
+/* 复选框样式 */
+.checkbox_label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.checkbox_label input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+/* ===== 备份列表容器 ===== */
+.backup_list_container {
+    margin-top: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.backup_list_header {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 8px 15px;
+}
+
+.backup_list_header h3 {
+    margin: 0;
+    font-size: 16px;
+}
+
+.backup_list {
+    max-height: 500px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+/* 空列表提示 */
+.backup_empty_notice {
+    text-align: center;
+    padding: 30px;
+    color: #888;
+    opacity: 0.6;
+    font-style: italic;
+}
+
+/* ===== 单个备份项目 ===== */
+.backup_item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px;
+    margin-bottom: 12px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.backup_item:hover {
+    background-color: rgba(0, 0, 0, 0.25);
+}
+
+.backup_info {
+    flex: 1;
+    overflow: hidden;
+}
+
+/* 角色/群组名称 - 突出显示 */
+.backup_entity_header {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #ff9800;
+    border-bottom: 1px solid rgba(255, 152, 0, 0.3);
+    padding-bottom: 3px;
+}
+
+.backup_header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 5px;
+}
+
+.backup_entity {
+    font-weight: bold;
+    color: var(--SmColor);
+}
+
+/* 聊天名称样式 */
+.backup_chat {
+    font-style: italic;
+    color: #aaa;
+}
+
+/* 详细信息样式 */
+.backup_details {
+    font-size: 0.85em;
+    margin-top: 5px;
+    color: #ccc;
+}
+
+.backup_mesid, .backup_date {
+    font-size: 0.85em;
+    opacity: 0.85;
+}
+
+/* 预览内容样式 */
+.backup_preview {
+    margin-top: 8px;
+    padding-top: 5px;
+    border-top: 1px dotted rgba(255, 255, 255, 0.1);
+    font-size: 0.9em;
+    color: #ddd;
+    font-style: italic;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
+    word-break: break-word;  /* 添加这一行确保长文本不会溢出 */
+}
+
+/* 按钮区域样式 */
+.backup_actions {
+    margin-left: 10px;
+    display: flex;
+    flex-direction: column;  
+    gap: 5px;
+}
+
+/* ===== 预览消息样式 ===== */
+.backup_preview_content {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.backup_preview_message {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.backup_preview_sender {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.backup_preview_text {
+    white-space: pre-wrap;
+}
+
+.backup_preview_footer {
+    margin-top: 10px;
+    opacity: 0.7;
+}
+
+function filterSpecialTags(text) {
+    return text
+        .replace(/<tableEdit[\s\S]*?<\/tableEdit>/g, '')
+        .replace(/<think>[\s\S]*?<\/think>/g, '')
+        .replace(/<thinking>[\s\S]*?<\/thinking>/g, '');
+}
